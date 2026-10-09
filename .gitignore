@@ -1,0 +1,14 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Android Studio / Gradle
+.idea/
+.gradle/
+local.properties
+**/build/
+
+# OS
+.DS_Store
+Thumbs.db
