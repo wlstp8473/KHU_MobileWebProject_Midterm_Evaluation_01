@@ -1,5 +1,20 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+val localProperties = Properties().apply {
+    val propertiesFile = rootProject.file("local.properties")
+    if (propertiesFile.exists()) {
+        propertiesFile.inputStream().use { load(it) }
+    }
+}
+val authToken = localProperties.getProperty("AUTH_TOKEN")?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("PhotoViewer/local.properties에 AUTH_TOKEN을 설정하세요.")
+require(authToken.matches(Regex("[0-9a-fA-F]{40}"))) {
+    "AUTH_TOKEN은 Django REST Framework의 40자리 16진수 토큰이어야 합니다."
 }
 
 android {
@@ -16,6 +31,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "AUTH_TOKEN", "\"$authToken\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

@@ -33,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String POST_URL =
             "http://10.0.2.2:8000/api_root/Post/";
-
+     
+    
     private TextView textView;
     private Button btnLoad;
     private Button btnSave;
@@ -111,6 +112,12 @@ public class MainActivity extends AppCompatActivity {
                 URL url = new URL(POST_URL);
 
                 conn = (HttpURLConnection) url.openConnection();
+
+                conn.setRequestProperty(
+                        "Authorization",
+                        "Token " + BuildConfig.AUTH_TOKEN
+                );
+
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(5000);
