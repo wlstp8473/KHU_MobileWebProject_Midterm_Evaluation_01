@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/upload_author_help" />
+        <EditText android:id="@+id/upload_author" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="@string/upload_author"
+            android:inputType="number" android:maxLength="10" android:singleLine="true" />
+        <EditText android:id="@+id/upload_title" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="@string/upload_title"
+            android:inputType="textCapSentences" android:maxLength="200" android:singleLine="true" />
+        <EditText android:id="@+id/upload_text" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="@string/upload_text"
+            android:inputType="textMultiLine|textCapSentences" android:gravity="top"
+            android:minLines="3" android:maxLines="6" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/upload_date_help" android:layout_marginTop="8dp" />
+        <Button android:id="@+id/upload_pick_image" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="@string/upload_pick_image" />
+        <ImageView android:id="@+id/upload_preview" android:layout_width="match_parent"
+            android:layout_height="160dp" android:scaleType="fitCenter"
+            android:visibility="gone" android:contentDescription="@string/upload_preview" />
+        <TextView android:id="@+id/upload_image_status" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="@string/upload_image_required"
+            android:paddingTop="8dp" />
+        <TextView android:id="@+id/upload_error" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:visibility="gone"
+            android:paddingTop="8dp" android:accessibilityLiveRegion="polite" />
+    </LinearLayout>
+</ScrollView>

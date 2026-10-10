@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">PhotoViewer</string>
+    <string name="sync">동기화</string>
+    <string name="sync_waiting">동기화 대기 중</string>
+    <string name="sync_loading">이미지 동기화 중…</string>
+    <string name="sync_success">이미지 로드 성공! (%1$d개)</string>
+    <string name="sync_empty">불러올 이미지가 없습니다.</string>
+    <string name="sync_failure">동기화 실패: %1$s</string>
+    <string name="permission_needed">PC 서버 연결을 위해 주변 기기 권한을 허용해주세요. 권한 창이 나타나지 않으면 앱 설정에서 허용할 수 있습니다.</string>
+    <string name="upload_open">새로운 이미지 게시</string>
+    <string name="upload_author">작성자 ID</string>
+    <string name="upload_author_help">서버에 등록된 작성자의 숫자 ID를 입력하세요. 현재 과제용 admin 계정은 1입니다.</string>
+    <string name="upload_title">제목 (필수, 최대 200자)</string>
+    <string name="upload_text">본문 (필수)</string>
+    <string name="upload_date_help">작성·게시 날짜는 게시 시각으로 자동 설정됩니다. 이미지 크기는 최대 20MB입니다.</string>
+    <string name="upload_pick_image">이미지 선택</string>
+    <string name="upload_preview">게시할 이미지 미리보기</string>
+    <string name="upload_image_required">게시할 이미지를 선택해주세요.</string>
+    <string name="upload_image_selected">이미지 선택 완료</string>
+    <string name="upload_submit">게시</string>
+    <string name="upload_cancel">취소</string>
+    <string name="upload_author_invalid">작성자 ID는 1 이상의 숫자로 입력해주세요.</string>
+    <string name="upload_title_required">제목을 입력해주세요.</string>
+    <string name="upload_text_required">본문을 입력해주세요.</string>
+    <string name="upload_loading">이미지를 게시하는 중…</string>
+    <string name="upload_success">게시 완료! 목록을 동기화합니다.</string>
+    <string name="upload_sync_loading">게시 완료! 이미지 목록을 동기화 중…</string>
+    <string name="upload_sync_failure">게시 완료. 목록 동기화 실패: %1$s</string>
+    <string name="upload_failure">게시 실패: %1$s</string>
+    <string name="upload_image_unreadable">이미지를 열 수 없습니다. 다른 이미지를 선택해주세요.</string>
+    <string name="upload_image_too_large">이미지 크기가 20MB를 초과합니다.</string>
+    <string name="http_failure">서버 응답 HTTP %1$d</string>
 </resources>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,20 +10,20 @@
         android:id="@+id/btn_load"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="동기화" />
+        android:text="@string/sync" />
 
     <Button
         android:id="@+id/btn_save"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="새로운 이미지 게시" />
+        android:text="@string/upload_open" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:text="동기화 대기 중"
+        android:text="@string/sync_waiting"
         android:textSize="18sp" />
 
     <androidx.recyclerview.widget.RecyclerView
