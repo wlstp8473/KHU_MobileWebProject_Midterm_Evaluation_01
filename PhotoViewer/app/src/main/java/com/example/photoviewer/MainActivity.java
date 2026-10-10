@@ -42,7 +42,21 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String POST_URL = "http://10.0.2.2:8000/api_root/Post/";
+    private static final boolean USE_CLOUD = true; // 로컬 Django: False, PythonAnywhere: True로 설정
+
+    private static final String LOCAL_POST_URL =
+            "http://10.0.2.2:8000/api_root/Post/";
+
+    private static final String CLOUD_POST_URL =
+            "https://kimjinse.pythonanywhere.com/api_root/Post/";
+
+    private static final String POST_URL =
+            USE_CLOUD ? CLOUD_POST_URL : LOCAL_POST_URL;
+
+    private static final String AUTH_TOKEN =
+            USE_CLOUD
+                    ? BuildConfig.CLOUD_AUTH_TOKEN
+                    : BuildConfig.LOCAL_AUTH_TOKEN;
     private static final long MAX_IMAGE_BYTES = 20L * 1024 * 1024;
     private TextView textView;
     private Button btnLoad, btnSave;
@@ -300,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 String now = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
                         .format(new java.util.Date());
-                return PostUploader.upload(POST_URL, BuildConfig.AUTH_TOKEN, author, title, body,
+                return PostUploader.upload(POST_URL, AUTH_TOKEN, author, title, body,
                         now, temporaryImage, getContentResolver().getType(image));
             } catch (IOException | SecurityException e) {
                 failure = e.getMessage() == null ? getString(R.string.upload_image_unreadable) : e.getMessage();
@@ -344,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) new URL(POST_URL).openConnection();
-                connection.setRequestProperty("Authorization", "Token " + BuildConfig.AUTH_TOKEN);
+                connection.setRequestProperty("Authorization", "Token " + AUTH_TOKEN);
                 connection.setRequestProperty("Accept", "application/json");
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
@@ -359,8 +373,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 JSONArray posts = new JSONArray(json.toString());
                 for (int i = 0; i < posts.length(); i++) {
-                    String imageUrl = posts.getJSONObject(i).getString("image")
-                            .replace("127.0.0.1", "10.0.2.2");
+                    String imageUrl =
+                            posts.getJSONObject(i).getString("image");
+
+                    if (!USE_CLOUD && imageUrl.contains("127.0.0.1")) {
+                        imageUrl = imageUrl.replace(
+                                "127.0.0.1",
+                                "10.0.2.2"
+                        );
+                    }
                     HttpURLConnection imageConnection =
                             (HttpURLConnection) new URL(imageUrl).openConnection();
                     try {

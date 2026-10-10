@@ -6,19 +6,37 @@ plugins {
 
 val localProperties = Properties().apply {
     val propertiesFile = rootProject.file("local.properties")
+
     if (propertiesFile.exists()) {
-        propertiesFile.inputStream().use { load(it) }
+        propertiesFile.inputStream().use {
+            load(it)
+        }
     }
 }
-val authToken = localProperties.getProperty("AUTH_TOKEN")?.trim()
+
+val localAuthToken = localProperties.getProperty("LOCAL_AUTH_TOKEN")?.trim()
     ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("PhotoViewer/local.properties에 AUTH_TOKEN을 설정하세요.")
-require(authToken.matches(Regex("[0-9a-fA-F]{40}"))) {
-    "AUTH_TOKEN은 Django REST Framework의 40자리 16진수 토큰이어야 합니다."
+    ?: throw GradleException(
+        "PhotoViewer/local.properties에 LOCAL_AUTH_TOKEN을 설정하세요."
+    )
+
+val cloudAuthToken = localProperties.getProperty("CLOUD_AUTH_TOKEN")?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException(
+        "PhotoViewer/local.properties에 CLOUD_AUTH_TOKEN을 설정하세요."
+    )
+
+require(localAuthToken.matches(Regex("[0-9a-fA-F]{40}"))) {
+    "LOCAL_AUTH_TOKEN은 Django REST Framework의 40자리 16진수 토큰이어야 합니다."
+}
+
+require(cloudAuthToken.matches(Regex("[0-9a-fA-F]{40}"))) {
+    "CLOUD_AUTH_TOKEN은 Django REST Framework의 40자리 16진수 토큰이어야 합니다."
 }
 
 android {
     namespace = "com.example.photoviewer"
+
     compileSdk {
         version = release(37)
     }
@@ -31,7 +49,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "AUTH_TOKEN", "\"$authToken\"")
+
+        buildConfigField(
+            "String",
+            "LOCAL_AUTH_TOKEN",
+            "\"$localAuthToken\""
+        )
+
+        buildConfigField(
+            "String",
+            "CLOUD_AUTH_TOKEN",
+            "\"$cloudAuthToken\""
+        )
     }
 
     buildFeatures {
@@ -45,6 +74,7 @@ android {
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
