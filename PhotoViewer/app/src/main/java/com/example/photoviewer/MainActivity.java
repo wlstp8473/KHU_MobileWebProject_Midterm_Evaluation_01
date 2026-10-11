@@ -9,7 +9,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,6 +29,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import org.json.JSONArray;
 import java.io.BufferedReader;
@@ -69,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
     private Button pickImageButton;
     private Uri selectedImage;
     private String draftAuthor = "1", draftTitle = "", draftBody = "";
+    private PostListViewModel postList;
+    private EditText searchInput;
+    private TextView searchSummary;
+    private Button searchClear;
+    private RecyclerView postRecycler;
 
     private final ActivityResultLauncher<String> localNetworkPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -103,9 +113,29 @@ public class MainActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         btnLoad = findViewById(R.id.btn_load);
         btnSave = findViewById(R.id.btn_save);
-        RecyclerView list = findViewById(R.id.recyclerView);
-        list.setLayoutManager(new LinearLayoutManager(this));
-        list.setAdapter(new ImageAdapter(new ArrayList<>(), this::openPost));
+        postList = new ViewModelProvider(this).get(PostListViewModel.class);
+        postRecycler = findViewById(R.id.recyclerView);
+        postRecycler.setLayoutManager(new LinearLayoutManager(this));
+        searchInput = findViewById(R.id.search_input);
+        searchSummary = findViewById(R.id.search_summary);
+        searchClear = findViewById(R.id.search_clear);
+        searchInput.setText(postList.query);
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                postList.query = s.toString();
+                applySearch();
+            }
+            @Override public void afterTextChanged(Editable s) { }
+        });
+        searchClear.setOnClickListener(v -> searchInput.setText(""));
+        searchInput.setOnEditorActionListener((view, actionId, event) -> {
+            if (actionId != EditorInfo.IME_ACTION_SEARCH) return false;
+            ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                    .hideSoftInputFromWindow(view.getWindowToken(), 0);
+            return true;
+        });
+        applySearch();
         View root = findViewById(R.id.main_root);
         int padding = root.getPaddingTop();
         ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
@@ -349,7 +379,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openPost(PostItem post) {
+        ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                .hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
         startActivity(PostDetailActivity.createIntent(this, post));
+    }
+
+    // Replace the synced source only on success; filtering never changes the source list.
+    void displayPosts(List<PostItem> posts) {
+        postList.posts.clear();
+        postList.posts.addAll(posts);
+        postList.hasSynced = true;
+        applySearch();
+    }
+
+    private void applySearch() {
+        List<PostItem> results = new ArrayList<>();
+        for (PostItem post : postList.posts) {
+            if (post.matchesQuery(postList.query)) results.add(post);
+        }
+        postRecycler.setAdapter(new ImageAdapter(results, this::openPost));
+        searchClear.setEnabled(!postList.query.isEmpty());
+        if (!postList.hasSynced) searchSummary.setText(R.string.search_sync_first);
+        else if (postList.posts.isEmpty()) searchSummary.setText(R.string.sync_empty);
+        else if (postList.query.trim().isEmpty())
+            searchSummary.setText(getString(R.string.search_all, results.size()));
+        else if (results.isEmpty()) searchSummary.setText(R.string.search_empty);
+        else searchSummary.setText(getString(R.string.search_count, results.size()));
     }
 
     private class ImageSyncTask extends AsyncTask<Void, Void, List<PostItem>> {
@@ -426,8 +481,7 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText(getString(afterUpload ? R.string.upload_sync_failure : R.string.sync_failure, failure));
                 return;
             }
-            RecyclerView list = findViewById(R.id.recyclerView);
-            list.setAdapter(new ImageAdapter(posts, MainActivity.this::openPost));
+            displayPosts(posts);
             textView.setText(posts.isEmpty() ? getString(R.string.sync_empty) :
                     getString(R.string.sync_success, posts.size()));
         }

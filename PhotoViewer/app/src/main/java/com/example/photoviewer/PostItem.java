@@ -27,6 +27,12 @@ public class PostItem implements Serializable {
         return json.isNull(key) ? "" : json.optString(key, "");
     }
 
+    public boolean matchesQuery(String query) {
+        String keyword = query.trim().toLowerCase(Locale.ROOT);
+        return keyword.isEmpty() || title.toLowerCase(Locale.ROOT).contains(keyword)
+                || text.toLowerCase(Locale.ROOT).contains(keyword);
+    }
+
     public static String formatDate(String value) {
         if (value == null || value.isEmpty()) return "";
         try {
