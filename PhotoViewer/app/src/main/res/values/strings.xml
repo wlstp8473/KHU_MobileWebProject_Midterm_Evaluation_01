@@ -48,4 +48,11 @@
     <string name="search_empty">검색 결과가 없습니다.</string>
     <string name="view_mode_large">큰 이미지</string>
     <string name="view_mode_thumbnail">썸네일 목록</string>
+    <string name="sort_label">게시 날짜 정렬</string>
+    <string name="sort_newest">최신순</string>
+    <string name="sort_oldest">오래된순</string>
+    <string-array name="sort_options">
+        <item>@string/sort_newest</item>
+        <item>@string/sort_oldest</item>
+    </string-array>
 </resources>

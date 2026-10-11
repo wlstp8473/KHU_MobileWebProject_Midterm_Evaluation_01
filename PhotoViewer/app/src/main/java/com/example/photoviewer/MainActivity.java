@@ -15,9 +15,12 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private Button searchClear;
     private RecyclerView postRecycler;
     private boolean thumbnailMode;
+    private boolean oldestFirst;
 
     private final ActivityResultLauncher<String> localNetworkPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -150,6 +154,27 @@ public class MainActivity extends AppCompatActivity {
             ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
                     .hideSoftInputFromWindow(view.getWindowToken(), 0);
             return true;
+        });
+        applySearch();
+        oldestFirst = getSharedPreferences("display_settings", MODE_PRIVATE)
+                .getBoolean("oldest_first", false);
+        Spinner sortOrder = findViewById(R.id.sort_order);
+        ArrayAdapter<CharSequence> sortOptions = ArrayAdapter.createFromResource(this,
+                R.array.sort_options, android.R.layout.simple_spinner_item);
+        sortOptions.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sortOrder.setAdapter(sortOptions);
+        sortOrder.setSelection(oldestFirst ? 1 : 0);
+        sortOrder.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                boolean selected = position == 1;
+                if (oldestFirst == selected) return;
+                oldestFirst = selected;
+                getSharedPreferences("display_settings", MODE_PRIVATE).edit()
+                        .putBoolean("oldest_first", oldestFirst).apply();
+                applySearch();
+                ((LinearLayoutManager) postRecycler.getLayoutManager()).scrollToPositionWithOffset(0, 0);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) { }
         });
         applySearch();
         View root = findViewById(R.id.main_root);
@@ -413,6 +438,7 @@ public class MainActivity extends AppCompatActivity {
         for (PostItem post : postList.posts) {
             if (post.matchesQuery(postList.query)) results.add(post);
         }
+        PostSorter.sort(results, oldestFirst);
         postRecycler.setAdapter(new ImageAdapter(results, this::openPost, thumbnailMode));
         searchClear.setEnabled(!postList.query.isEmpty());
         if (!postList.hasSynced) searchSummary.setText(R.string.search_sync_first);
