@@ -9,4 +9,5 @@ public class PostListViewModel extends ViewModel {
     final List<PostItem> posts = new ArrayList<>();
     boolean hasSynced;
     String query = "";
+    int pageIndex;
 }

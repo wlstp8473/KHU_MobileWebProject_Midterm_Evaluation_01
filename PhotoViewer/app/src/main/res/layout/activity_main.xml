@@ -111,4 +111,30 @@
         android:layout_weight="1"
         android:layout_marginTop="8dp" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <Button
+            android:id="@+id/page_previous"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/page_previous"
+            android:enabled="false" />
+        <TextView
+            android:id="@+id/page_indicator"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/page_empty" />
+        <Button
+            android:id="@+id/page_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/page_next"
+            android:enabled="false" />
+    </LinearLayout>
 </LinearLayout>

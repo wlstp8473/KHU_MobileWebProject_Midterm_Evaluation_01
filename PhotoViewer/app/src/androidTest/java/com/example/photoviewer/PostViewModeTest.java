@@ -83,17 +83,17 @@ public class PostViewModeTest {
     @Test public void keepsVisiblePostAndPersistsModeAcrossActivityLaunches() throws Exception {
         List<PostItem> posts = posts();
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
+            scenario.onActivity(activity -> activity.displayPosts(posts));
+            onView(withId(R.id.page_next)).perform(click());
             scenario.onActivity(activity -> {
-                activity.displayPosts(posts);
                 ((LinearLayoutManager) ((RecyclerView) activity.findViewById(R.id.recyclerView))
-                        .getLayoutManager()).scrollToPositionWithOffset(5, -100);
+                        .getLayoutManager()).scrollToPositionWithOffset(2, -100);
             });
-            onView(withText("게시물 5")).check(matches(isDisplayed()));
+            onView(withText("게시물 7")).check(matches(isDisplayed()));
             onView(withId(R.id.view_mode_thumbnail)).perform(click());
-            onView(withText("게시물 5")).check(matches(isDisplayed()));
-            scenario.onActivity(activity -> assertEquals(5, ((LinearLayoutManager)
-                    ((RecyclerView) activity.findViewById(R.id.recyclerView)).getLayoutManager())
-                    .findFirstVisibleItemPosition()));
+            onView(withText("게시물 7")).check(matches(isDisplayed()));
+            // A five-row thumbnail page may fit entirely; keep the post visible and page unchanged.
+            onView(withId(R.id.page_indicator)).check(matches(withText("2 / 3 페이지")));
             scenario.recreate();
             onView(withId(R.id.view_mode_thumbnail)).check(matches(isChecked()));
         }

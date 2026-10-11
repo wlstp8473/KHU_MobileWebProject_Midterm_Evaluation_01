@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
                     ? BuildConfig.CLOUD_AUTH_TOKEN
                     : BuildConfig.LOCAL_AUTH_TOKEN;
     private static final long MAX_IMAGE_BYTES = 20L * 1024 * 1024;
+    private static final int PAGE_SIZE = 5;
     private TextView textView;
     private Button btnLoad, btnSave;
     private boolean busy;
@@ -85,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView postRecycler;
     private boolean thumbnailMode;
     private boolean oldestFirst;
+    private Button previousPage, nextPage;
+    private TextView pageIndicator;
+    private int pageCount;
 
     private final ActivityResultLauncher<String> localNetworkPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -122,6 +126,11 @@ public class MainActivity extends AppCompatActivity {
         postList = new ViewModelProvider(this).get(PostListViewModel.class);
         postRecycler = findViewById(R.id.recyclerView);
         postRecycler.setLayoutManager(new LinearLayoutManager(this));
+        previousPage = findViewById(R.id.page_previous);
+        nextPage = findViewById(R.id.page_next);
+        pageIndicator = findViewById(R.id.page_indicator);
+        previousPage.setOnClickListener(v -> changePage(postList.pageIndex - 1));
+        nextPage.setOnClickListener(v -> changePage(postList.pageIndex + 1));
         thumbnailMode = getSharedPreferences("display_settings", MODE_PRIVATE)
                 .getBoolean("thumbnail_mode", false);
         RadioGroup viewMode = findViewById(R.id.view_mode_group);
@@ -143,7 +152,10 @@ public class MainActivity extends AppCompatActivity {
         searchInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Android restores the same text after recreation; that must not reset the page.
+                if (postList.query.equals(s.toString())) return;
                 postList.query = s.toString();
+                postList.pageIndex = 0;
                 applySearch();
             }
             @Override public void afterTextChanged(Editable s) { }
@@ -155,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
                     .hideSoftInputFromWindow(view.getWindowToken(), 0);
             return true;
         });
-        applySearch();
         oldestFirst = getSharedPreferences("display_settings", MODE_PRIVATE)
                 .getBoolean("oldest_first", false);
         Spinner sortOrder = findViewById(R.id.sort_order);
@@ -169,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                 boolean selected = position == 1;
                 if (oldestFirst == selected) return;
                 oldestFirst = selected;
+                postList.pageIndex = 0;
                 getSharedPreferences("display_settings", MODE_PRIVATE).edit()
                         .putBoolean("oldest_first", oldestFirst).apply();
                 applySearch();
@@ -439,7 +451,16 @@ public class MainActivity extends AppCompatActivity {
             if (post.matchesQuery(postList.query)) results.add(post);
         }
         PostSorter.sort(results, oldestFirst);
-        postRecycler.setAdapter(new ImageAdapter(results, this::openPost, thumbnailMode));
+        pageCount = (results.size() + PAGE_SIZE - 1) / PAGE_SIZE;
+        postList.pageIndex = Math.max(0, Math.min(postList.pageIndex, pageCount - 1));
+        int start = postList.pageIndex * PAGE_SIZE;
+        int end = Math.min(start + PAGE_SIZE, results.size());
+        postRecycler.setAdapter(new ImageAdapter(new ArrayList<>(results.subList(start, end)),
+                this::openPost, thumbnailMode));
+        pageIndicator.setText(getString(R.string.page_indicator,
+                pageCount == 0 ? 0 : postList.pageIndex + 1, pageCount));
+        previousPage.setEnabled(postList.pageIndex > 0);
+        nextPage.setEnabled(postList.pageIndex + 1 < pageCount);
         searchClear.setEnabled(!postList.query.isEmpty());
         if (!postList.hasSynced) searchSummary.setText(R.string.search_sync_first);
         else if (postList.posts.isEmpty()) searchSummary.setText(R.string.sync_empty);
@@ -447,6 +468,15 @@ public class MainActivity extends AppCompatActivity {
             searchSummary.setText(getString(R.string.search_all, results.size()));
         else if (results.isEmpty()) searchSummary.setText(R.string.search_empty);
         else searchSummary.setText(getString(R.string.search_count, results.size()));
+    }
+
+    private void changePage(int index) {
+        if (index < 0 || index >= pageCount) return;
+        postList.pageIndex = index;
+        ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                .hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+        applySearch();
+        ((LinearLayoutManager) postRecycler.getLayoutManager()).scrollToPositionWithOffset(0, 0);
     }
 
     private class ImageSyncTask extends AsyncTask<Void, Void, List<PostItem>> {
