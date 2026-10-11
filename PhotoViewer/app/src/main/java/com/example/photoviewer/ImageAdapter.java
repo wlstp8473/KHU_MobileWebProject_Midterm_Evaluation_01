@@ -16,14 +16,20 @@ public class ImageAdapter
 
     private final List<PostItem> posts;
     private final OnPostClickListener listener;
+    private final boolean thumbnailMode;
 
     public interface OnPostClickListener {
         void onPostClick(PostItem post);
     }
 
     public ImageAdapter(List<PostItem> posts, OnPostClickListener listener) {
+        this(posts, listener, false);
+    }
+
+    public ImageAdapter(List<PostItem> posts, OnPostClickListener listener, boolean thumbnailMode) {
         this.posts = posts;
         this.listener = listener;
+        this.thumbnailMode = thumbnailMode;
     }
 
     @NonNull
@@ -34,7 +40,7 @@ public class ImageAdapter
     ) {
         View view = LayoutInflater
                 .from(parent.getContext())
-                .inflate(R.layout.item_image, parent, false);
+                .inflate(thumbnailMode ? R.layout.item_post_thumbnail : R.layout.item_image, parent, false);
 
         return new ImageViewHolder(view);
     }

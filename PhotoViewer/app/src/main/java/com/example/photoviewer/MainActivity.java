@@ -17,6 +17,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView searchSummary;
     private Button searchClear;
     private RecyclerView postRecycler;
+    private boolean thumbnailMode;
 
     private final ActivityResultLauncher<String> localNetworkPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -116,6 +118,20 @@ public class MainActivity extends AppCompatActivity {
         postList = new ViewModelProvider(this).get(PostListViewModel.class);
         postRecycler = findViewById(R.id.recyclerView);
         postRecycler.setLayoutManager(new LinearLayoutManager(this));
+        thumbnailMode = getSharedPreferences("display_settings", MODE_PRIVATE)
+                .getBoolean("thumbnail_mode", false);
+        RadioGroup viewMode = findViewById(R.id.view_mode_group);
+        viewMode.check(thumbnailMode ? R.id.view_mode_thumbnail : R.id.view_mode_large);
+        viewMode.setOnCheckedChangeListener((group, checkedId) -> {
+            thumbnailMode = checkedId == R.id.view_mode_thumbnail;
+            getSharedPreferences("display_settings", MODE_PRIVATE).edit()
+                    .putBoolean("thumbnail_mode", thumbnailMode).apply();
+            LinearLayoutManager layout = (LinearLayoutManager) postRecycler.getLayoutManager();
+            int position = layout.findFirstVisibleItemPosition();
+            applySearch();
+            // Row heights change, so keep the same post at the top instead of its old pixel offset.
+            if (position != RecyclerView.NO_POSITION) layout.scrollToPositionWithOffset(position, 0);
+        });
         searchInput = findViewById(R.id.search_input);
         searchSummary = findViewById(R.id.search_summary);
         searchClear = findViewById(R.id.search_clear);
@@ -397,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
         for (PostItem post : postList.posts) {
             if (post.matchesQuery(postList.query)) results.add(post);
         }
-        postRecycler.setAdapter(new ImageAdapter(results, this::openPost));
+        postRecycler.setAdapter(new ImageAdapter(results, this::openPost, thumbnailMode));
         searchClear.setEnabled(!postList.query.isEmpty());
         if (!postList.hasSynced) searchSummary.setText(R.string.search_sync_first);
         else if (postList.posts.isEmpty()) searchSummary.setText(R.string.sync_empty);

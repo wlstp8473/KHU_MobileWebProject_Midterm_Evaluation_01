@@ -46,4 +46,6 @@
     <string name="search_all">전체 게시물 %1$d개</string>
     <string name="search_count">검색 결과 %1$d개</string>
     <string name="search_empty">검색 결과가 없습니다.</string>
+    <string name="view_mode_large">큰 이미지</string>
+    <string name="view_mode_thumbnail">썸네일 목록</string>
 </resources>

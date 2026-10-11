@@ -62,6 +62,29 @@
         android:accessibilityLiveRegion="polite"
         android:text="@string/search_sync_first" />
 
+    <RadioGroup
+        android:id="@+id/view_mode_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/view_mode_large"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/view_mode_large" />
+
+        <RadioButton
+            android:id="@+id/view_mode_thumbnail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/view_mode_thumbnail" />
+    </RadioGroup>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
