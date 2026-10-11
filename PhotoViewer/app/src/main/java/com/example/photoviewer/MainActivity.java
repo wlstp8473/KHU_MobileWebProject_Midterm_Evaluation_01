@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         btnSave = findViewById(R.id.btn_save);
         RecyclerView list = findViewById(R.id.recyclerView);
         list.setLayoutManager(new LinearLayoutManager(this));
-        list.setAdapter(new ImageAdapter(new ArrayList<>()));
+        list.setAdapter(new ImageAdapter(new ArrayList<>(), this::openPost));
         View root = findViewById(R.id.main_root);
         int padding = root.getPaddingTop();
         ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
@@ -348,13 +348,17 @@ public class MainActivity extends AppCompatActivity {
         new ImageSyncTask(afterUpload).execute();
     }
 
-    private class ImageSyncTask extends AsyncTask<Void, Void, List<Bitmap>> {
+    private void openPost(PostItem post) {
+        startActivity(PostDetailActivity.createIntent(this, post));
+    }
+
+    private class ImageSyncTask extends AsyncTask<Void, Void, List<PostItem>> {
         private final boolean afterUpload;
         private String failure;
         ImageSyncTask(boolean afterUpload) { this.afterUpload = afterUpload; }
         @Override
-        protected List<Bitmap> doInBackground(Void... args) {
-            List<Bitmap> images = new ArrayList<>();
+        protected List<PostItem> doInBackground(Void... args) {
+            List<PostItem> items = new ArrayList<>();
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) new URL(POST_URL).openConnection();
@@ -373,8 +377,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 JSONArray posts = new JSONArray(json.toString());
                 for (int i = 0; i < posts.length(); i++) {
-                    String imageUrl =
-                            posts.getJSONObject(i).getString("image");
+                    PostItem post = new PostItem(posts.getJSONObject(i));
+                    items.add(post);
+                    String imageUrl = post.imageUrl;
+                    if (imageUrl.isEmpty()) continue;
 
                     if (!USE_CLOUD && imageUrl.contains("127.0.0.1")) {
                         imageUrl = imageUrl.replace(
@@ -382,19 +388,27 @@ public class MainActivity extends AppCompatActivity {
                                 "10.0.2.2"
                         );
                     }
-                    HttpURLConnection imageConnection =
-                            (HttpURLConnection) new URL(imageUrl).openConnection();
+                    HttpURLConnection imageConnection = null;
+                    File cachedImage = null;
                     try {
+                        imageConnection = (HttpURLConnection) new URL(imageUrl).openConnection();
                         imageConnection.setConnectTimeout(5000);
                         imageConnection.setReadTimeout(5000);
-                        try (InputStream input = imageConnection.getInputStream()) {
-                            Bitmap bitmap = BitmapFactory.decodeStream(input);
-                            if (bitmap == null)
-                                throw new IOException(getString(R.string.upload_image_unreadable));
-                            images.add(bitmap);
+                        cachedImage = File.createTempFile("post-image-", ".img", getCacheDir());
+                        try (InputStream input = imageConnection.getInputStream();
+                             FileOutputStream output = new FileOutputStream(cachedImage)) {
+                            byte[] buffer = new byte[8192];
+                            int count;
+                            while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
                         }
+                        post.bitmap = PostDetailActivity.decodeImage(cachedImage.getAbsolutePath());
+                        if (post.bitmap == null) throw new IOException();
+                        post.imagePath = cachedImage.getAbsolutePath();
+                    } catch (IOException e) {
+                        // A missing image must not hide the post's title and body.
+                        if (cachedImage != null) cachedImage.delete();
                     } finally {
-                        imageConnection.disconnect();
+                        if (imageConnection != null) imageConnection.disconnect();
                     }
                 }
             } catch (Exception e) {
@@ -402,10 +416,10 @@ public class MainActivity extends AppCompatActivity {
             } finally {
                 if (connection != null) connection.disconnect();
             }
-            return images;
+            return items;
         }
         @Override
-        protected void onPostExecute(List<Bitmap> images) {
+        protected void onPostExecute(List<PostItem> posts) {
             if (isFinishing() || isDestroyed()) return;
             setBusy(false);
             if (failure != null) {
@@ -413,9 +427,9 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             RecyclerView list = findViewById(R.id.recyclerView);
-            list.setAdapter(new ImageAdapter(images));
-            textView.setText(images.isEmpty() ? getString(R.string.sync_empty) :
-                    getString(R.string.sync_success, images.size()));
+            list.setAdapter(new ImageAdapter(posts, MainActivity.this::openPost));
+            textView.setText(posts.isEmpty() ? getString(R.string.sync_empty) :
+                    getString(R.string.sync_success, posts.size()));
         }
     }
 }

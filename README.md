@@ -21,6 +21,8 @@ KHU_MobileWebProject_Midterm_Evaluation_01/
 ├── PhotoViewer/                             # Android 앱
 │   ├── app/src/main/java/com/example/photoviewer/
 │   │   ├── MainActivity.java                # 화면, 서버 선택, 동기화, 업로드
+│   │   ├── PostItem.java                    # 게시물 정보
+│   │   ├── PostDetailActivity.java          # 게시물 상세 화면
 │   │   ├── PostUploader.java                # multipart POST 전송
 │   │   └── ImageAdapter.java                # 이미지 목록 표시
 │   ├── app/src/main/res/layout/             # 메인 화면과 업로드 입력창
@@ -137,10 +139,12 @@ PC 브라우저는 `127.0.0.1:8000`, 에뮬레이터는 `10.0.2.2:8000`으로 �
 1. Android Studio에서 **Sync Project with Gradle Files**를 실행합니다.
 2. 에뮬레이터를 시작하고 `app`을 Run합니다.
 3. 로컬 모드라면 PC의 Django 서버가 실행 중인지 확인합니다.
-4. **동기화**를 누르면 서버의 게시물 이미지를 가져옵니다.
+4. **동기화**를 누르면 서버의 게시물 정보와 이미지를 가져옵니다.
 5. **새로운 이미지 게시**를 누르고 작성자 ID·제목·본문을 입력합니다.
 6. **이미지 선택**에서 파일을 선택하고 미리보기를 확인합니다.
 7. **게시**를 누르면 multipart POST로 전송하며, 성공 후 목록을 자동 동기화합니다.
+
+목록에는 이미지와 함께 제목·게시 날짜가 표시됩니다. 제목을 누르면 상세 화면에서 본문, 작성자 ID, 작성·게시 날짜를 볼 수 있습니다. 날짜는 기기의 시간대로 표시합니다. 긴 본문은 스크롤해서 읽고, **목록으로** 버튼이나 뒤로 가기를 누르면 이전 목록으로 돌아옵니다.
 
 작성자 ID의 기본값은 `1`입니다. 다른 계정을 사용한다면 해당 서버의 관리자 화면에서 사용자 ID를 확인해 입력하세요. 제목·본문·이미지는 모두 필수이고, 이미지는 최대 20MB까지 올릴 수 있습니다. 작성·게시 날짜는 게시 시각으로 자동 입력됩니다.
 

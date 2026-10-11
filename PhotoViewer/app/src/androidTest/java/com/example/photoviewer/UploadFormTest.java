@@ -8,6 +8,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.*;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.*;
+import static androidx.test.espresso.matcher.RootMatchers.isDialog;
 
 @RunWith(AndroidJUnit4.class)
 public class UploadFormTest {
@@ -33,8 +34,8 @@ public class UploadFormTest {
             onView(withId(R.id.upload_title)).perform(replaceText("보존할 제목"), closeSoftKeyboard());
             onView(withId(R.id.upload_text)).perform(replaceText("보존할 본문"), closeSoftKeyboard());
             scenario.recreate();
-            onView(withId(R.id.upload_title)).check(matches(withText("보존할 제목")));
-            onView(withId(R.id.upload_text)).check(matches(withText("보존할 본문")));
+            onView(withId(R.id.upload_title)).inRoot(isDialog()).check(matches(withText("보존할 제목")));
+            onView(withId(R.id.upload_text)).inRoot(isDialog()).check(matches(withText("보존할 본문")));
         }
     }
 }
